@@ -57,14 +57,13 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            # 1. Se déplacer directement dans le répertoire de l'application
             cd ~/applications/avisClient
             
-            # 1. On force l'arrêt des anciennes instances (le timeout évite un blocage infini)
-            timeout 5s pkill -9 -f avisClient.jar || true
+            # 1. Arrêter l'ancienne version
+            pkill -f avisClient.jar || true
             
-            # 2. On lance l'application dans un sous-shell complètement isolé en tâche de fond
-            (nohup java -jar avisClient.jar > app.log 2>&1 < /dev/null &)
+            # 2. L'astuce du tuto corrigée : on ajoute "bash -c" et de strictes redirections de flux
+            nohup bash -c "java -jar avisClient.jar" > app.log 2>&1 < /dev/null &
             
-            # 3. On quitte immédiatement le script SSH proprement
-            exit 0
+            # 3. On laisse une seconde au processus pour s'enregistrer
+            sleep 1
