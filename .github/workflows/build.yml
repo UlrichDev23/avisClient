@@ -56,15 +56,19 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
+            # L'option tty force l'émulation d'un terminal, ce qui résout le problème d'absence de TTY pour sudo
+          tty: true
           script: |
-            # 1. Arrêter l'ancien service s'il existe pour éviter les conflits
-            sudo /etc/init.d/avisClient stop || true
-            
-            # 2. Créer le lien symbolique avec les droits sudo (Correction de l'alignement)
-            sudo ln -sf /home/${{ secrets.USERNAME }}/applications/avisClient/avisClient.jar /etc/init.d/avisClient
-            
-            # 3. Rendre le fichier JAR explicitement exécutable par Linux
-            chmod +x /home/${{ secrets.USERNAME }}/applications/avisClient/avisClient.jar
-            
+              # 1. Arrêter l'ancien service s'il existe pour éviter les conflits
+              sudo /etc/init.d/avisClient stop || true
+              
+              # 2. Créer le lien symbolique avec les droits sudo
+              sudo ln -sf /home/${{ secrets.USERNAME }}/applications/avisClient/avisClient.jar /etc/init.d/avisClient
+              
+              # 3. Rendre le fichier JAR explicitement exécutable par Linux
+              sudo chmod +x /home/${{ secrets.USERNAME }}/applications/avisClient/avisClient.jar
+              
+              # 4. Démarrer le service avec sudo
+              sudo /etc/init.d/avisClient start
             # 4. Démarrer le service avec sudo (Correction de l'alignement et des privilèges)
             sudo /etc/init.d/avisClient start
