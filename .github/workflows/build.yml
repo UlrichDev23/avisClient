@@ -59,19 +59,18 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           request_pty: true
-          # SOLUTION ICI : Force l'action à valider le succès et se couper après 5 secondes au lieu de bloquer indéfiniment
-          command_timeout: 5s
           script: |
             cd ~/applications/avisClient
             
-            # 1. Arrêter l'ancienne version proprement (sans sudo)
+            # 1. Arrêter l'ancienne version proprement
             pkill -f avisClient.jar || true
             
-            # 2. Rendre le fichier JAR explicitement exécutable
+            # 2. Rendre le fichier JAR exécutable
             chmod +x avisClient.jar
             
-            # 3. Lancer le JAR directement (Méthode du Tuto sans sudo) en coupant les entrées/sorties
+            # 3. Lancer le JAR en arrière-plan
             nohup ./avisClient.jar > app.log 2>&1 < /dev/null &
             
-            # 4. Petite pause pour laisser le processus s'enregistrer
-            sleep 2
+            # 4. SOLUTION : disown retire le processus de la table des tâches de la console SSH.
+            # L'action SSH va croire qu'il n'y a plus rien qui tourne et va se fermer proprement en Succès.
+            disown
