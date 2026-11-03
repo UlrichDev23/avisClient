@@ -44,3 +44,24 @@ jobs:
           source: "target/avisClient.jar"
           target: ~/applications/avisClient
           strip_components: 1
+  run-script:
+    name: run script
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: create folder on remote VM
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            # 1. Se déplacer directement dans le répertoire de l'application
+            cd ~/applications/avisClient
+            
+            # 2. Arrêter proprement l'ancienne version si elle tourne déjà
+            pkill -f avisClient.jar || true
+            
+            # 3. Lancer le JAR en arrière-plan sans bloquer GitHub Actions
+            nohup java -jar avisClient.jar > app.log 2>&1 &
