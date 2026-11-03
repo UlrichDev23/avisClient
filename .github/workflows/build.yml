@@ -60,11 +60,11 @@ jobs:
             # 1. Se déplacer directement dans le répertoire de l'application
             cd ~/applications/avisClient
             
-            # 2. Arrêter proprement l'ancienne version si elle tourne déjà
-            pkill -f avisClient.jar || true
+            # 1. On force l'arrêt des anciennes instances (le timeout évite un blocage infini)
+            timeout 5s pkill -9 -f avisClient.jar || true
             
-            # 3. Lancer le JAR en coupant complètement les liens d'entrée/sortie (< /dev/null)
-            nohup java -jar avisClient.jar > app.log 2>&1 < /dev/null &
+            # 2. On lance l'application dans un sous-shell complètement isolé en tâche de fond
+            (nohup java -jar avisClient.jar > app.log 2>&1 < /dev/null &)
             
-            # 4. Attendre 2 secondes pour s'assurer que le processus a démarré avant de fermer la session SSH
-            sleep 2
+            # 3. On quitte immédiatement le script SSH proprement
+            exit 0
