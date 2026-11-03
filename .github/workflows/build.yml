@@ -63,5 +63,8 @@ jobs:
             # 2. Arrêter proprement l'ancienne version si elle tourne déjà
             pkill -f avisClient.jar || true
             
-            # 3. Lancer le JAR en arrière-plan sans bloquer GitHub Actions
-            nohup java -jar avisClient.jar > app.log 2>&1 &
+            # 3. Lancer le JAR en coupant complètement les liens d'entrée/sortie (< /dev/null)
+            nohup java -jar avisClient.jar > app.log 2>&1 < /dev/null &
+            
+            # 4. Attendre 2 secondes pour s'assurer que le processus a démarré avant de fermer la session SSH
+            sleep 2
