@@ -58,16 +58,20 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
-          tty: true # Aligné correctement sous 'with' pour simuler un terminal pour sudo
+          request_pty: true
+          # SOLUTION ICI : Force l'action à valider le succès et se couper après 5 secondes au lieu de bloquer indéfiniment
+          command_timeout: 5s
           script: |
-            # 1. Arrêter l'ancien service s'il existe pour éviter les conflits
-            sudo /etc/init.d/avisClient stop || true
+            cd ~/applications/avisClient
             
-            # 2. Créer le lien symbolique avec les droits sudo
-            sudo ln -sf /home/${{ secrets.USERNAME }}/applications/avisClient/avisClient.jar /etc/init.d/avisClient
+            # 1. Arrêter l'ancienne version proprement (sans sudo)
+            pkill -f avisClient.jar || true
             
-            # 3. Rendre le fichier JAR explicitement exécutable par Linux
-            sudo chmod +x /home/${{ secrets.USERNAME }}/applications/avisClient/avisClient.jar
+            # 2. Rendre le fichier JAR explicitement exécutable
+            chmod +x avisClient.jar
             
-            # 4. Démarrer le service avec sudo
-            sudo /etc/init.d/avisClient start
+            # 3. Lancer le JAR directement (Méthode du Tuto sans sudo) en coupant les entrées/sorties
+            nohup ./avisClient.jar > app.log 2>&1 < /dev/null &
+            
+            # 4. Petite pause pour laisser le processus s'enregistrer
+            sleep 2
