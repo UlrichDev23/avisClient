@@ -57,13 +57,14 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd ~/applications/avisClient
+            # 1. Arrêter l'ancien service s'il existe pour éviter les conflits
+            sudo /etc/init.d/avisClient stop || true
             
-            # 1. Arrêter l'ancienne version
-            pkill -f avisClient.jar || true
+            # 2. Créer le lien symbolique avec les droits sudo (Correction de l'alignement)
+            sudo ln -sf /home/${{ secrets.USERNAME }}/applications/avisClient/avisClient.jar /etc/init.d/avisClient
             
-            # 2. L'astuce du tuto corrigée : on ajoute "bash -c" et de strictes redirections de flux
-            nohup bash -c "java -jar avisClient.jar" > app.log 2>&1 < /dev/null &
+            # 3. Rendre le fichier JAR explicitement exécutable par Linux
+            chmod +x /home/${{ secrets.USERNAME }}/applications/avisClient/avisClient.jar
             
-            # 3. On laisse une seconde au processus pour s'enregistrer
-            sleep 1
+            # 4. Démarrer le service avec sudo (Correction de l'alignement et des privilèges)
+            sudo /etc/init.d/avisClient start
